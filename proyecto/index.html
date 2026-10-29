@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 LinguiMundi - Aprende Idiomas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f2f5; min-height: 100vh; }
+
+        /* === LOGIN === */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-box h1 { text-align: center; color: #667eea; font-size: 2rem; margin-bottom: 0.3rem; }
+        .login-box .subtitle { text-align: center; color: #666; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .login-box h2 { text-align: center; color: #333; margin-bottom: 1.5rem; font-size: 1.3rem; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .login-box input:focus { border-color: #667eea; outline: none; }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .login-box button:hover { transform: scale(1.02); }
+        .login-box a { color: #667eea; cursor: pointer; text-decoration: none; font-weight: 500; }
+        .login-box a:hover { text-decoration: underline; }
+        #message {
+            margin-top: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        #message.success { background: #d4edda; color: #155724; display: block; }
+        #message.error { background: #f8d7da; color: #721c24; display: block; }
+        .login-footer { text-align: center; margin-top: 1.2rem; color: #666; }
+
+        /* Estado del servidor */
+        .server-status {
+            font-size: 0.85rem;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .server-status.online { background: #d4edda; color: #155724; }
+        .server-status.offline { background: #f8d7da; color: #721c24; }
+        .server-status.checking { background: #fff3cd; color: #856404; }
+
+        /* === NAVEGACIÓN === */
+        nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        nav .logo { font-size: 1.5rem; font-weight: 700; }
+        nav ul { display: flex; list-style: none; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0.8rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+        nav ul li a:hover { background: rgba(255,255,255,0.2); }
+        nav ul li a.active { background: rgba(255,255,255,0.3); }
+        #logoutBtn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        #logoutBtn:hover { background: #c0392b; }
+
+        /* === CONTENIDO === */
+        .content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .content h2 { margin-bottom: 1.5rem; color: #333; font-size: 2rem; }
+        .content .description { color: #666; font-size: 1.1rem; margin-bottom: 2rem; }
+
+        /* === CARDS === */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        .card {
+            background: white;
+            padding: 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .card .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .card h3 { color: #667eea; margin-bottom: 0.5rem; }
+        .card p { color: #666; margin-bottom: 1rem; }
+        .card a, .card button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card a:hover, .card button:hover { transform: scale(1.05); }
+
+        /* === LECCIONES === */
+        .leccion {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .leccion .info h3 { color: #333; margin-bottom: 0.3rem; }
+        .leccion .info p { color: #666; }
+        .leccion button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .leccion button:hover { transform: scale(1.05); }
+
+        /* === PRÁCTICA === */
+        .ejercicio {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        .ejercicio .pregunta { font-size: 1.3rem; margin-bottom: 1.5rem; color: #333; }
+        .ejercicio .opciones { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .ejercicio .opciones button {
+            background: #f0f2f5;
+            border: 2px solid #e0e0e0;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 100px;
+        }
+        .ejercicio .opciones button:hover { background: #667eea; color: white; border-color: #667eea; }
+        .resultado { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; font-weight: 600; text-align: center; }
+        .correcto { background: #d4edda; color: #155724; }
+        .incorrecto { background: #f8d7da; color: #721c24; }
+
+        /* === PERFIL === */
+        .perfil-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 500px;
+        }
+        .perfil-card .avatar { font-size: 4rem; text-align: center; margin-bottom: 1rem; }
+        .perfil-card .info-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .perfil-card .info-item:last-child { border-bottom: none; }
+        .perfil-card .label { color: #666; font-weight: 500; }
+        .perfil-card .value { color: #333; }
+        .perfil-card button {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .perfil-card button:hover { transform: scale(1.02); }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        @media (max-width: 768px) {
+            nav { flex-direction: column; gap: 1rem; }
+            nav ul { justify-content: center; gap: 0.8rem; }
+            .content { padding: 1rem; }
+            .leccion { flex-direction: column; align-items: stretch; gap: 1rem; }
+            .ejercicio .opciones { flex-direction: column; }
+            .login-box { margin: 1rem; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== LOGIN ==================== -->
+    <div id="loginPage" class="page active">
+        <div class="container">
+            <div class="login-box">
+                <h1>🌍 LinguiMundi</h1>
+                <p class="subtitle">Aprende idiomas de forma interactiva</p>
+
+                <div id="serverStatus" class="server-status checking">⏳ Verificando servidor...</div>
+
+                <h2 id="formTitle">Iniciar Sesión</h2>
+
+                <form id="loginForm">
+                    <input type="text" id="email" placeholder="👤 Usuario" value="aloha" required>
+                    <input type="password" id="password" placeholder="🔒 Contraseña" value="aloha555" required>
+                    <button type="submit">Ingresar</button>
+                </form>
+
+                <form id="registerForm" style="display:none;">
+                    <input type="text" id="regEmail" placeholder="👤 Usuario (mín 3 caracteres)" required>
+                    <input type="password" id="regPassword" placeholder="🔒 Contraseña (mín 6 caracteres)" required>
+                    <button type="submit">Registrarse</button>
+                </form>
+
+                <div id="message"></div>
+
+                <div class="login-footer">
+                    <span id="toggleText">¿No tienes cuenta? <a href="#" id="toggleAuth">Regístrate</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="dashboardPage" class="page">
+        <nav>
+            <span class="logo">🌍 LinguiMundi</span>
+            <ul>
+                <li><a href="#" class="active" data-page="dashboard">Inicio</a></li>
+                <li><a href="#" data-page="lecciones">📚 Lecciones</a></li>
+                <li><a href="#" data-page="practica">✍️ Practicar</a></li>
+                <li><a href="#" data-page="perfil">👤 Perfil</a></li>
+                <li><button id="logoutBtn">Cerrar Sesión</button></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <h2>👋 ¡Bienvenido a LinguiMundi!</h2>
+            <p class="description">Domina nuevos idiomas con nuestras lecciones interactivas y ejercicios prácticos.</p>
+            <div class="cards">
+                <div class="card">
+                    <div class="icon">📚</div>
+                    <h3>Lecciones</h3>
+                    <p>Accede a todas las lecciones disponibles y aprende a tu ritmo.</p>
+                    <a href="#" data-page="lecciones">Ver lecciones →</a>
+                </div>
+                <div class="card">
+                    <div class="icon">✍️</div>
+                    <h3>Práctica</h3>
+                    <p>Pon a prueba tus conocimientos con ejercicios interactivos.</p>
+                    <a href="#" data-page="practica">Practicar ahora →</a>
+                </div>
+                <div class="card">
+                    <div class="icon">🏆</div>
+                    <h3>Progreso</h3>
+                    <p>Monitorea tu avance y alcanza tus metas de aprendizaje.</p>
+                    <a href="#" data-page="perfil">Ver progreso →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LECCIONES ==================== -->
+    <div id="leccionesPage" class="page">
+        <nav>
+            <span class="logo">🌍 LinguiMundi</span>
+            <ul>
+                <li><a href="#" data-page="dashboard">Inicio</a></li>
+                <li><a href="#" class="active" data-page="lecciones">📚 Lecciones</a></li>
+                <li><a href="#" data-page="practica">✍️ Practicar</a></li>
+                <li><a href="#" data-page="perfil">👤 Perfil</a></li>
+                <li><button id="logoutBtn2">Cerrar Sesión</button></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <h2>📖 Lecciones Disponibles</h2>
+            <p class="description">Selecciona una lección para comenzar tu aprendizaje.</p>
+            <div id="leccionesList">
+                <div class="leccion">
+                    <div class="info">
+                        <h3>🇪🇸 Lección 1: Saludos Básicos</h3>
+                        <p>Aprende a saludar en español, inglés y francés.</p>
+                        <span style="color: #667eea; font-size: 0.9rem;">⭐ Nivel: Principiante</span>
+                    </div>
+                    <button onclick="iniciarLeccion('Saludos Básicos')">Comenzar</button>
+                </div>
+                <div class="leccion">
+                    <div class="info">
+                        <h3>🔢 Lección 2: Números del 1 al 10</h3>
+                        <p>Los números en diferentes idiomas.</p>
+                        <span style="color: #667eea; font-size: 0.9rem;">⭐ Nivel: Principiante</span>
+                    </div>
+                    <button onclick="iniciarLeccion('Números')">Comenzar</button>
+                </div>
+                <div class="leccion">
+                    <div class="info">
+                        <h3>🎨 Lección 3: Colores y Formas</h3>
+                        <p>Nombra los colores y formas en varios idiomas.</p>
+                        <span style="color: #667eea; font-size: 0.9rem;">⭐ Nivel: Intermedio</span>
+                    </div>
+                    <button onclick="iniciarLeccion('Colores y Formas')">Comenzar</button>
+                </div>
+                <div class="leccion">
+                    <div class="info">
+                        <h3>🍽️ Lección 4: Comida y Bebida</h3>
+                        <p>Vocabulario esencial para pedir comida.</p>
+                        <span style="color: #667eea; font-size: 0.9rem;">⭐ Nivel: Intermedio</span>
+                    </div>
+                    <button onclick="iniciarLeccion('Comida y Bebida')">Comenzar</button>
+                </div>
+                <div class="leccion">
+                    <div class="info">
+                        <h3>✈️ Lección 5: Viajes y Turismo</h3>
+                        <p>Frases útiles para viajar al extranjero.</p>
+                        <span style="color: #667eea; font-size: 0.9rem;">⭐ Nivel: Avanzado</span>
+                    </div>
+                    <button onclick="iniciarLeccion('Viajes y Turismo')">Comenzar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PRÁCTICA ==================== -->
+    <div id="practicaPage" class="page">
+        <nav>
+            <span class="logo">🌍 LinguiMundi</span>
+            <ul>
+                <li><a href="#" data-page="dashboard">Inicio</a></li>
+                <li><a href="#" data-page="lecciones">📚 Lecciones</a></li>
+                <li><a href="#" class="active" data-page="practica">✍️ Practicar</a></li>
+                <li><a href="#" data-page="perfil">👤 Perfil</a></li>
+                <li><button id="logoutBtn3">Cerrar Sesión</button></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <h2>✍️ Ejercicios Prácticos</h2>
+            <p class="description">Responde las preguntas y pon a prueba tus conocimientos.</p>
+            <div class="ejercicio">
+                <div class="pregunta">❓ ¿Cómo se dice "Hola" en inglés?</div>
+                <div class="opciones">
+                    <button onclick="verificarRespuesta('Hello', this)">Hello</button>
+                    <button onclick="verificarRespuesta('Bonjour', this)">Bonjour</button>
+                    <button onclick="verificarRespuesta('Hola', this)">Hola</button>
+                    <button onclick="verificarRespuesta('Ciao', this)">Ciao</button>
+                </div>
+                <div id="resultado1" class="resultado"></div>
+            </div>
+            <div class="ejercicio">
+                <div class="pregunta">❓ ¿Cómo se dice "Gracias" en francés?</div>
+                <div class="opciones">
+                    <button onclick="verificarRespuesta2('Thank you', this)">Thank you</button>
+                    <button onclick="verificarRespuesta2('Merci', this)">Merci</button>
+                    <button onclick="verificarRespuesta2('Gracias', this)">Gracias</button>
+                    <button onclick="verificarRespuesta2('Danke', this)">Danke</button>
+                </div>
+                <div id="resultado2" class="resultado"></div>
+            </div>
+            <div class="ejercicio">
+                <div class="pregunta">❓ ¿Cuál es el número 5 en español?</div>
+                <div class="opciones">
+                    <button onclick="verificarRespuesta3('Five', this)">Five</button>
+                    <button onclick="verificarRespuesta3('Cinq', this)">Cinq</button>
+                    <button onclick="verificarRespuesta3('Cinco', this)">Cinco</button>
+                    <button onclick="verificarRespuesta3('Fünf', this)">Fünf</button>
+                </div>
+                <div id="resultado3" class="resultado"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PERFIL ==================== -->
+    <div id="perfilPage" class="page">
+        <nav>
+            <span class="logo">🌍 LinguiMundi</span>
+            <ul>
+                <li><a href="#" data-page="dashboard">Inicio</a></li>
+                <li><a href="#" data-page="lecciones">📚 Lecciones</a></li>
+                <li><a href="#" data-page="practica">✍️ Practicar</a></li>
+                <li><a href="#" class="active" data-page="perfil">👤 Perfil</a></li>
+                <li><button id="logoutBtn4">Cerrar Sesión</button></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <h2>👤 Mi Perfil</h2>
+            <div class="perfil-card">
+                <div class="avatar">👨‍🎓</div>
+                <div class="info-item">
+                    <span class="label">📧 Usuario</span>
+                    <span class="value" id="userEmail">aloha</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">📊 Progreso</span>
+                    <span class="value">Lecciones completadas: <span id="progreso">0</span>/5</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">🏅 Nivel</span>
+                    <span class="value" id="nivelUsuario">Principiante</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">📅 Miembro desde</span>
+                    <span class="value" id="miembroDesde">Hoy</span>
+                </div>
+                <button onclick="editarPerfil()">✏️ Editar perfil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN
+        // ==========================================
+        const API_URL = 'http://localhost:8080/api';
+        let leccionesCompletadas = 0;
+        let usuarioActual = 'aloha';
+        let fechaRegistro = new Date().toLocaleDateString();
+
+        // ==========================================
+        // VERIFICAR SERVIDOR
+        // ==========================================
+        async function verificarServidor() {
+            const statusEl = document.getElementById('serverStatus');
+            console.log('🔍 Verificando servidor en:', API_URL + '/idiomas');
+
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 5000);
+
+                const response = await fetch(`${API_URL}/idiomas`, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeout);
+
+                if (response.ok) {
+                    statusEl.className = 'server-status online';
+                    statusEl.innerHTML = '✅ Servidor conectado en http://localhost:8080';
+                    console.log('✅ Servidor conectado');
+                } else {
+                    statusEl.className = 'server-status offline';
+                    statusEl.innerHTML = '⚠️ Servidor responde con error ' + response.status;
+                }
+            } catch (error) {
+                console.error('❌ Error conectando:', error);
+                statusEl.className = 'server-status offline';
+                if (error.name === 'AbortError') {
+                    statusEl.innerHTML = '⏱️ Timeout. ¿Está el servidor corriendo?';
+                } else {
+                    statusEl.innerHTML = '❌ Servidor NO disponible. Ejecuta: <code>node server.js</code>';
+                }
+            }
+        }
+
+        // ==========================================
+        // NAVEGACIÓN
+        // ==========================================
+        function mostrarPagina(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const page = document.getElementById(pageId + 'Page');
+            if (page) page.classList.add('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('[data-page]');
+            if (link) {
+                e.preventDefault();
+                const page = link.dataset.page;
+                mostrarPagina(page);
+                document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+                document.querySelectorAll(`nav a[data-page="${page}"]`).forEach(a => a.classList.add('active'));
+            }
+        });
+
+        // ==========================================
+        // AUTENTICACIÓN
+        // ==========================================
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const toggleAuth = document.getElementById('toggleAuth');
+        const toggleText = document.getElementById('toggleText');
+        const formTitle = document.getElementById('formTitle');
+        const message = document.getElementById('message');
+
+        let isLogin = true;
+
+        toggleAuth.addEventListener('click', function(e) {
+            e.preventDefault();
+            isLogin = !isLogin;
+            if (isLogin) {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                formTitle.textContent = 'Iniciar Sesión';
+                toggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggleAuth">Regístrate</a>';
+                document.querySelector('#toggleAuth').addEventListener('click', arguments.callee);
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                formTitle.textContent = 'Crear Cuenta';
+                toggleText.innerHTML = '¿Ya tienes cuenta? <a href="#" id="toggleAuth">Inicia Sesión</a>';
+                document.querySelector('#toggleAuth').addEventListener('click', arguments.callee);
+            }
+        });
+
+        // LOGIN con backend
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('email').value.trim();
+            const contrasena = document.getElementById('password').value.trim();
+
+            if (!usuario || !contrasena) {
+                mostrarMensaje('❌ Ingresa usuario y contraseña', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, contrasena })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.exitoso) {
+                    mostrarMensaje('✅ ' + data.mensaje, 'success');
+                    usuarioActual = data.usuario;
+                    fechaRegistro = new Date().toLocaleDateString();
+                    setTimeout(() => {
+                        mostrarPagina('dashboard');
+                        actualizarPerfil();
+                    }, 1000);
+                } else {
+                    mostrarMensaje('❌ ' + (data.mensaje || 'Error en la autenticación'), 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('🔴 No se pudo conectar al servidor. ¿Está corriendo node server.js?', 'error');
+            }
+        });
+
+        // REGISTRO con backend
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('regEmail').value.trim();
+            const contrasena = document.getElementById('regPassword').value.trim();
+
+            if (!usuario || usuario.length < 3) {
+                mostrarMensaje('❌ El usuario debe tener al menos 3 caracteres', 'error');
+                return;
+            }
+            if (!contrasena || contrasena.length < 6) {
+                mostrarMensaje('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/registro`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, contrasena })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.exitoso) {
+                    mostrarMensaje('✅ ' + data.mensaje, 'success');
+                    document.getElementById('email').value = usuario;
+                    document.getElementById('password').value = contrasena;
+                    setTimeout(() => {
+                        document.getElementById('toggleAuth').click();
+                        document.getElementById('message').className = '';
+                    }, 2000);
+                } else {
+                    mostrarMensaje('❌ ' + (data.mensaje || 'Error en el registro'), 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('🔴 No se pudo conectar al servidor', 'error');
+            }
+        });
+
+        function mostrarMensaje(texto, tipo) {
+            const msg = document.getElementById('message');
+            msg.textContent = texto;
+            msg.className = tipo;
+            setTimeout(() => {
+                msg.textContent = '';
+                msg.className = '';
+            }, 4000);
+        }
+
+        // ==========================================
+        // LECCIONES
+        // ==========================================
+        function iniciarLeccion(nombre) {
+            if (confirm(`¿Quieres comenzar la lección: "${nombre}"?`)) {
+                alert(`📚 Lección "${nombre}" iniciada.`);
+                leccionesCompletadas++;
+                document.getElementById('progreso').textContent = leccionesCompletadas;
+                actualizarNivel();
+            }
+        }
+
+        function actualizarNivel() {
+            const nivel = document.getElementById('nivelUsuario');
+            if (leccionesCompletadas >= 4) nivel.textContent = '🌟 Avanzado';
+            else if (leccionesCompletadas >= 2) nivel.textContent = '📈 Intermedio';
+            else nivel.textContent = '📖 Principiante';
+        }
+
+        // ==========================================
+        // PRÁCTICA
+        // ==========================================
+        function verificarRespuesta(respuesta, boton) {
+            const resultado = document.getElementById('resultado1');
+            const correcta = respuesta === 'Hello';
+            const contenedor = boton.parentElement;
+            contenedor.querySelectorAll('button').forEach(b => {
+                b.style.background = '#f0f2f5';
+                b.style.color = '#333';
+            });
+            if (correcta) {
+                boton.style.background = '#28a745';
+                boton.style.color = 'white';
+                resultado.textContent = '✅ ¡Correcto!';
+                resultado.className = 'resultado correcto';
+            } else {
+                boton.style.background = '#dc3545';
+                boton.style.color = 'white';
+                resultado.textContent = '❌ La respuesta correcta es "Hello"';
+                resultado.className = 'resultado incorrecto';
+            }
+        }
+
+        function verificarRespuesta2(respuesta, boton) {
+            const resultado = document.getElementById('resultado2');
+            const correcta = respuesta === 'Merci';
+            const contenedor = boton.parentElement;
+            contenedor.querySelectorAll('button').forEach(b => {
+                b.style.background = '#f0f2f5';
+                b.style.color = '#333';
+            });
+            if (correcta) {
+                boton.style.background = '#28a745';
+                boton.style.color = 'white';
+                resultado.textContent = '✅ ¡Correcto!';
+                resultado.className = 'resultado correcto';
+            } else {
+                boton.style.background = '#dc3545';
+                boton.style.color = 'white';
+                resultado.textContent = '❌ La respuesta correcta es "Merci"';
+                resultado.className = 'resultado incorrecto';
+            }
+        }
+
+        function verificarRespuesta3(respuesta, boton) {
+            const resultado = document.getElementById('resultado3');
+            const correcta = respuesta === 'Cinco';
+            const contenedor = boton.parentElement;
+            contenedor.querySelectorAll('button').forEach(b => {
+                b.style.background = '#f0f2f5';
+                b.style.color = '#333';
+            });
+            if (correcta) {
+                boton.style.background = '#28a745';
+                boton.style.color = 'white';
+                resultado.textContent = '✅ ¡Correcto!';
+                resultado.className = 'resultado correcto';
+            } else {
+                boton.style.background = '#dc3545';
+                boton.style.color = 'white';
+                resultado.textContent = '❌ La respuesta correcta es "Cinco"';
+                resultado.className = 'resultado incorrecto';
+            }
+        }
+
+        // ==========================================
+        // PERFIL
+        // ==========================================
+        function actualizarPerfil() {
+            document.getElementById('userEmail').textContent = usuarioActual;
+            document.getElementById('miembroDesde').textContent = fechaRegistro;
+            document.getElementById('progreso').textContent = leccionesCompletadas;
+            actualizarNivel();
+        }
+
+        function editarPerfil() {
+            alert('✏️ Función en desarrollo.');
+        }
+
+        // ==========================================
+        // CERRAR SESIÓN
+        // ==========================================
+        function cerrarSesion() {
+            if (confirm('¿Cerrar sesión?')) {
+                mostrarPagina('login');
+                document.getElementById('loginForm').reset();
+                document.getElementById('registerForm').reset();
+                leccionesCompletadas = 0;
+                document.getElementById('progreso').textContent = 0;
+                actualizarNivel();
+                document.getElementById('email').value = 'aloha';
+                document.getElementById('password').value = 'aloha555';
+            }
+        }
+
+        document.querySelectorAll('#logoutBtn, #logoutBtn2, #logoutBtn3, #logoutBtn4').forEach(btn => {
+            btn.addEventListener('click', cerrarSesion);
+        });
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        console.log('🌍 LinguiMundi cargado');
+        console.log('📧 Usuario: aloha / Contraseña: aloha555');
+        mostrarPagina('login');
+
+        // Verificar servidor al cargar
+        window.addEventListener('load', function() {
+            setTimeout(verificarServidor, 500);
+        });
+    </script>
+
+</body>
+</html>
